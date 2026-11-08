@@ -20,3 +20,9 @@ cd backend
 ```
 
 Production deployment, chain state, external logging configuration and payment-provider integration require separate operational verification. This source update does not rotate existing credentials or remove earlier logs.
+
+## Web3Auth identity boundary
+
+Before any deployment, configure the actual provider contract outside Git. `WEB3AUTH_JWKS_URL` must be the trusted provider HTTPS JWKS endpoint. `WEB3AUTH_EXPECTED_ISSUER` must exactly match that provider's HTTPS issuer. `WEB3AUTH_CLIENT_ID` must be this application's client ID, matching the intended frontend app. `WEB3AUTH_JWS_ALGORITHM` must be explicitly set to the provider's supported RS256 or ES256 algorithm. There are no issuer, audience or algorithm defaults. Do not infer those values from an incoming token.
+
+The verifier accepts only that configured algorithm, exact issuer, exactly one audience equal to this app's client ID, and a future expiry. Missing or invalid configuration refuses startup. A token signed by the trusted JWKS for another app or issuer is rejected before wallet extraction. Multi-audience tokens are deliberately not supported. Confirm the actual provider's token contract before enabling `ADMIN_OPERATOR_ADDRESS`; no live provider or real token was used in the local tests.
