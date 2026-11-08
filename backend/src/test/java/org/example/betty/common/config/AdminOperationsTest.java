@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -46,7 +47,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 @ContextConfiguration(classes = AdminOperationsTest.Config.class)
 @TestPropertySource(properties = {
-        "ADMIN_ADDRESS=0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ADMIN_OPERATOR_ADDRESS=0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "jwt.secret=test-only-signing-material-not-used-outside-this-test"
 })
 class AdminOperationsTest {
@@ -60,15 +61,24 @@ class AdminOperationsTest {
     @Autowired GameSettleService settleService;
     @Autowired ExchangeService exchangeService;
     private MockMvc mvc;
+    private ValueOperations<String, Object> values;
 
     @BeforeEach
     void setUp() {
         reset(redis, rewardService, settleService, exchangeService);
+        values = mock(ValueOperations.class);
+        when(redis.opsForValue()).thenReturn(values);
         mvc = webAppContextSetup(context).build();
     }
 
     private String bearer(String wallet) {
         return "Bearer " + jwtService.generateAccessToken(wallet, new Date(System.currentTimeMillis() + 60000));
+    }
+
+    private String activeBearer(String wallet) {
+        String token = bearer(wallet);
+        when(values.get(wallet)).thenReturn(jwtService.getClaimsFromToken(token.substring(7)).getId());
+        return token;
     }
 
     @ParameterizedTest
@@ -83,8 +93,7 @@ class AdminOperationsTest {
 
     @Test
     void signedInUserCannotSendRewards() throws Exception {
-        when(redis.hasKey(USER)).thenReturn(true);
-        mvc.perform(post("/api/v1/reward").header("Authorization", bearer(USER))
+        mvc.perform(post("/api/v1/reward").header("Authorization", activeBearer(USER))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(rewardService);
@@ -92,7 +101,6 @@ class AdminOperationsTest {
 
     @Test
     void revokedAdminCannotSendRewards() throws Exception {
-        when(redis.hasKey(ADMIN)).thenReturn(false);
         mvc.perform(post("/api/v1/reward").header("Authorization", bearer(ADMIN))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
@@ -137,15 +145,13 @@ class AdminOperationsTest {
 
     @Test
     void walletLookupAlsoRejectsRevokedSessions() {
-        when(redis.hasKey(ADMIN)).thenReturn(false);
         assertThrows(BusinessException.class,
                 () -> new SessionUtil(jwtService, redis).getWalletAddress(bearer(ADMIN)));
     }
 
     @Test
     void activeConfiguredAdminCanSendRewards() throws Exception {
-        when(redis.hasKey(ADMIN)).thenReturn(true);
-        mvc.perform(post("/api/v1/reward").header("Authorization", bearer(ADMIN))
+        mvc.perform(post("/api/v1/reward").header("Authorization", activeBearer(ADMIN))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk());
         verify(rewardService).sendReward(any());

@@ -13,12 +13,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AdminOperationsInterceptor implements HandlerInterceptor {
 
     private final SessionUtil sessionUtil;
-    private final String adminAddress;
+    private final String operatorAddress;
 
     public AdminOperationsInterceptor(SessionUtil sessionUtil,
-                                      @Value("${ADMIN_ADDRESS:}") String adminAddress) {
+                                      @Value("${ADMIN_OPERATOR_ADDRESS:}") String operatorAddress) {
         this.sessionUtil = sessionUtil;
-        this.adminAddress = adminAddress.trim();
+        this.operatorAddress = operatorAddress.trim();
     }
 
     @Override
@@ -27,7 +27,7 @@ public class AdminOperationsInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equals(request.getMethod())) {
             return true;
         }
-        if (!adminAddress.matches("0x[0-9a-fA-F]{40}")) {
+        if (!operatorAddress.matches("0x[0-9a-fA-F]{40}")) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
@@ -39,7 +39,7 @@ public class AdminOperationsInterceptor implements HandlerInterceptor {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
-        if (!adminAddress.equalsIgnoreCase(walletAddress)) {
+        if (!operatorAddress.equalsIgnoreCase(walletAddress)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }

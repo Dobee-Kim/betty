@@ -63,6 +63,7 @@ services:
 
       # admin
       ADMIN_ADDRESS: ${ADMIN_ADDRESS}
+      ADMIN_OPERATOR_ADDRESS: ${ADMIN_OPERATOR_ADDRESS:-}
       ADMIN_PRIVATE_KEY: ${ADMIN_PRIVATE_KEY}
 
       # Exchange Contract

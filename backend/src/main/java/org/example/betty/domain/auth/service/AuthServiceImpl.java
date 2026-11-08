@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
             String accessToken = JWTService.generateAccessToken(walletAddress, exp);
 
-            sessionUtil.setSession(walletAddress, ttl);
+            sessionUtil.setSession(accessToken, ttl);
 
             return accessToken;
         } catch (Exception ex) {

@@ -40,12 +40,14 @@ public class AccessTokenHandshakeInterceptor implements HandshakeInterceptor {
         // 세션 검증 및 등록: 실패 시 바로 종료
         String walletAddress;
         try {
-            walletAddress = sessionUtil.getSession(token);
+            SessionUtil.SessionIdentity identity = sessionUtil.getSessionIdentity(token);
+            walletAddress = identity.walletAddress();
             if (walletAddress == null || walletAddress.trim().isEmpty()) {
                 log.warn("Session not found for token");
                 return false;
             }
             attributes.put("walletAddress", walletAddress);
+            attributes.put("authenticatedSession", identity);
         } catch (Exception e) {
             log.error("Failed Session Check", e);
             return false;
@@ -83,6 +85,8 @@ public class AccessTokenHandshakeInterceptor implements HandshakeInterceptor {
                     log.warn("Display access not found for walletAddress={}, gameId={}, teamId={}", walletAddress, gameId, teamId);
                     return false;
                 }
+                attributes.put("displayGameId", gameId);
+                attributes.put("displayTeamId", teamId);
                 log.info("Handshake successful for walletAddress: {}", walletAddress);
                 return true;
             } catch (Exception e) {
