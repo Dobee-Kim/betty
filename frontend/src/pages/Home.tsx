@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import type { TargetAndTransition } from 'framer-motion';
 import { useDrag } from '@use-gesture/react';
 import Sidebar from '../components/Sidebar';
 import profileImg from '../assets/profile.png';
@@ -269,7 +270,7 @@ const Home: React.FC = () => {
   };
 
   // 카드 스타일 계산
-  const getCardStyle = (index: number) => {
+  const getCardStyle = (index: number): TargetAndTransition => {
     const position = (index - currentIndex + games.length) % games.length;
     const translateX = position === 0 ? 0 : position === 1 ? 240 : position === games.length - 1 ? -240 : -1000;
     const scale = position === 0 ? 1 : 0.8;
