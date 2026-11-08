@@ -19,7 +19,7 @@
     "@web3auth/base": "^9.7.0",
     "@web3auth/ethereum-provider": "^9.7.0",
     "@web3auth/no-modal": "^9.7.0",
-    "axios": "^1.8.4",
+    "axios": "^1.20.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "ethers": "^6.13.5",
