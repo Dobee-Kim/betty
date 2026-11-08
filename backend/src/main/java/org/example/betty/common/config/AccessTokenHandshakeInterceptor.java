@@ -26,7 +26,6 @@ public class AccessTokenHandshakeInterceptor implements HandshakeInterceptor {
                                    Map<String, Object> attributes) {
 
         URI uri = request.getURI();
-        log.info("Handshake request URI: {}", uri);
 
         MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
 
